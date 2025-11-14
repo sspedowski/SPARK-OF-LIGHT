@@ -1,8 +1,8 @@
 // Simple test harness (no Jest) using Node assertions
 import assert from 'assert';
-import { createEmptyData, createProject, createPlanItem, projectProgress, toggleChecklistItem } from '../SRC/MODULES/masterPlan/masterPlanService';
-import { createEmptyOutreachData, createCategory, createContact, recordOutreachAction, summaryMetrics } from '../SRC/MODULES/outreach/outreachService';
-import { buildDailySummary } from '../SRC/CORE/dailySummary';
+import { createEmptyData, createProject, createPlanItem, projectProgress, toggleChecklistItem, filterPlanItems, updatePlanItem, deletePlanItem } from '../SRC/MODULES/masterPlan/masterPlanService.ts';
+import { createEmptyOutreachData, createCategory, createContact, recordOutreachAction, summaryMetrics } from '../SRC/MODULES/outreach/outreachService.ts';
+import { buildDailySummary } from '../SRC/CORE/dailySummary.ts';
 
 function uuid() { return crypto.randomUUID(); }
 function now() { return new Date().toISOString(); }
@@ -17,6 +17,17 @@ function testMasterPlanBasics() {
   assert.equal(data.planItems[0].checklist[0].checked, true, 'Checklist toggled');
   const prog = projectProgress(data, proj.id);
   assert.equal(prog.total, 1);
+
+  // Filtering
+  const filtered = filterPlanItems(data, { project_id: proj.id, category: ['Drafting'] });
+  assert.equal(filtered.length, 1, 'Filter by category returns item');
+
+  // Update & Delete
+  const updated = updatePlanItem(data, item.id, { status: 'Done' });
+  assert.ok(updated && updated.status === 'Done', 'PlanItem updated to Done');
+  const del = deletePlanItem(data, item.id);
+  assert.ok(del, 'PlanItem deleted');
+  assert.equal(data.planItems.length, 0, 'PlanItem array empty after delete');
 }
 
 function testOutreachBasics() {

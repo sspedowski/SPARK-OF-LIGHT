@@ -13,6 +13,7 @@ import {
   ISODateString,
   ISODateTimeString,
 } from "../../DOMAIN/sparkModels";
+} from "../../DOMAIN/sparkModels.ts";
 
 // In-memory stores (replace with adapters later)
 export interface MasterPlanData {

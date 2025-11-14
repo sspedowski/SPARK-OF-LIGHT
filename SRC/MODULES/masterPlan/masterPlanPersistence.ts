@@ -4,9 +4,9 @@
 
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { Project, PlanItem, UUID, ISODateTimeString } from '../../DOMAIN/sparkModels';
-import { validateProject, validatePlanItem } from './masterPlanValidators';
-import { MasterPlanData } from './masterPlanService';
+import { Project, PlanItem, UUID, ISODateTimeString } from '../../DOMAIN/sparkModels.ts';
+import { validateProject, validatePlanItem } from './masterPlanValidators.ts';
+import { MasterPlanData } from './masterPlanService.ts';
 
 export interface MasterPlanSnapshot {
   version: number; // increment when schema evolves

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p .",
-    "test": "node --loader ts-node/esm TESTS/runTests.ts"
+    "test": "node --loader ts-node/esm TESTS/runTests.ts",
+    "cli": "node --loader ts-node/esm SRC/cli.ts"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

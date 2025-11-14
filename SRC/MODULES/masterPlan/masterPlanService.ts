@@ -20,6 +20,9 @@ export interface MasterPlanData {
   planItems: PlanItem[];
   now: () => ISODateTimeString; // injectable clock for testability
   uuid: () => UUID; // injectable id generator
+  // Optional persistence hook injected by adapter. If present, will be invoked
+  // after any mutating operation (create/update/delete/template preload/toggle).
+  persist?: () => Promise<void>;
 }
 
 export function createEmptyData(idGen: () => UUID, clock: () => ISODateTimeString): MasterPlanData {
@@ -51,6 +54,7 @@ export function createProject(data: MasterPlanData, input: CreateProjectInput): 
     updated_at: data.now(),
   };
   data.projects.push(project);
+  if (data.persist) void data.persist();
   return project;
 }
 
@@ -66,6 +70,7 @@ export function updateProject(data: MasterPlanData, id: UUID, changes: Partial<O
   if (changes.color !== undefined) p.color = changes.color;
   p.updated_at = data.now();
   // In a future audit log, record before & after diff.
+  if (data.persist) void data.persist();
   return p;
 }
 
@@ -75,6 +80,7 @@ export function deleteProject(data: MasterPlanData, id: UUID): boolean {
   // Also remove associated plan items
   data.planItems = data.planItems.filter(pi => pi.project_id !== id);
   data.projects.splice(idx, 1);
+  if (data.persist) void data.persist();
   return true;
 }
 
@@ -111,6 +117,7 @@ export function createPlanItem(data: MasterPlanData, input: CreatePlanItemInput)
     updated_at: data.now(),
   };
   data.planItems.push(planItem);
+  if (data.persist) void data.persist();
   return planItem;
 }
 
@@ -133,6 +140,7 @@ export function updatePlanItem(data: MasterPlanData, id: UUID, changes: Partial<
     }));
   }
   pi.updated_at = data.now();
+  if (data.persist) void data.persist();
   return pi;
 }
 
@@ -140,6 +148,7 @@ export function deletePlanItem(data: MasterPlanData, id: UUID): boolean {
   const idx = data.planItems.findIndex(pi => pi.id === id);
   if (idx === -1) return false;
   data.planItems.splice(idx, 1);
+  if (data.persist) void data.persist();
   return true;
 }
 
@@ -219,6 +228,7 @@ export function preloadMdcrTemplate(data: MasterPlanData, project_id: UUID, star
       })
     );
   }
+  if (data.persist) void data.persist();
   return created;
 }
 
@@ -232,6 +242,7 @@ export function toggleChecklistItem(data: MasterPlanData, planItemId: UUID, chec
   if (!item) return false;
   item.checked = checked;
   pi.updated_at = data.now();
+  if (data.persist) void data.persist();
   return true;
 }
 

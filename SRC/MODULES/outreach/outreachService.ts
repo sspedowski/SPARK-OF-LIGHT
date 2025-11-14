@@ -34,6 +34,14 @@ export interface OutreachData {
   now: () => ISODateTimeString;
   uuid: () => UUID;
   persist?: () => Promise<void>; // optional snapshot persistence
+  audit?: (event: {
+    entity_type: 'ContactCategory' | 'Contact' | 'OutreachAction' | 'FollowUpItem' | 'OutcomeRecord';
+    change_type: 'Create' | 'Update' | 'Delete';
+    entity_id: UUID;
+    before?: unknown;
+    after?: unknown;
+    detail?: string;
+  }) => void | Promise<void>; // optional audit hook
 }
 
 export function createEmptyOutreachData(idGen: () => UUID, clock: () => ISODateTimeString): OutreachData {
@@ -54,6 +62,7 @@ export function createCategory(data: OutreachData, name: string, color: string, 
   };
   data.categories.push(validateContactCategory(category));
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'ContactCategory', change_type: 'Create', entity_id: category.id, after: category });
   return category;
 }
 
@@ -66,6 +75,7 @@ export function updateCategory(data: OutreachData, id: UUID, changes: Partial<Om
   cat.updated_at = data.now();
   validateContactCategory(cat); // throws if invalid
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'ContactCategory', change_type: 'Update', entity_id: cat.id, after: cat });
   return cat;
 }
 
@@ -76,6 +86,7 @@ export function deleteCategory(data: OutreachData, id: UUID): boolean {
   if (data.contacts.some(ct => ct.category_id === id)) throw new Error('Cannot delete category with existing contacts');
   data.categories.splice(idx, 1);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'ContactCategory', change_type: 'Delete', entity_id: id });
   return true;
 }
 
@@ -114,6 +125,7 @@ export function createContact(data: OutreachData, input: CreateContactInput): Co
   };
   data.contacts.push(validateContact(contact));
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'Contact', change_type: 'Create', entity_id: contact.id, after: contact });
   return contact;
 }
 
@@ -133,6 +145,7 @@ export function updateContact(data: OutreachData, id: UUID, changes: Partial<Omi
   ct.updated_at = data.now();
   validateContact(ct);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'Contact', change_type: 'Update', entity_id: ct.id, after: ct });
   return ct;
 }
 
@@ -144,6 +157,7 @@ export function deleteContact(data: OutreachData, id: UUID): boolean {
   data.outreachActions = data.outreachActions.filter(a => a.contact_id !== id);
   data.contacts.splice(idx, 1);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'Contact', change_type: 'Delete', entity_id: id });
   return true;
 }
 
@@ -176,6 +190,7 @@ export function recordOutreachAction(data: OutreachData, input: CreateOutreachAc
   };
   data.outreachActions.push(validateOutreachAction(action));
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'OutreachAction', change_type: 'Create', entity_id: action.id, after: action });
   return action;
 }
 
@@ -190,6 +205,7 @@ export function updateOutreachAction(data: OutreachData, id: UUID, changes: Part
   if (changes.next_follow_up_date !== undefined) act.next_follow_up_date = changes.next_follow_up_date as ISODateString | null;
   validateOutreachAction(act);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'OutreachAction', change_type: 'Update', entity_id: act.id, after: act });
   return act;
 }
 
@@ -210,6 +226,7 @@ export function createFollowUp(data: OutreachData, contact_id: UUID, outreach_ac
   };
   data.followUps.push(validateFollowUpItem(fu));
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'FollowUpItem', change_type: 'Create', entity_id: fu.id, after: fu });
   return fu;
 }
 
@@ -219,6 +236,7 @@ export function updateFollowUpStatus(data: OutreachData, id: UUID, status: Follo
   fu.status = status;
   validateFollowUpItem(fu);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'FollowUpItem', change_type: 'Update', entity_id: fu.id, after: fu });
   return fu;
 }
 
@@ -249,6 +267,7 @@ export function recordOutcome(data: OutreachData, input: CreateOutcomeInput): Ou
   };
   data.outcomes.push(validateOutcomeRecord(outcome));
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'OutcomeRecord', change_type: 'Create', entity_id: outcome.id, after: outcome });
   return outcome;
 }
 

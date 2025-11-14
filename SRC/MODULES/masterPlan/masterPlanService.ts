@@ -23,6 +23,15 @@ export interface MasterPlanData {
   // Optional persistence hook injected by adapter. If present, will be invoked
   // after any mutating operation (create/update/delete/template preload/toggle).
   persist?: () => Promise<void>;
+  audit?: (event: {
+    entity_type: 'Project' | 'PlanItem';
+    change_type: 'Create' | 'Update' | 'Delete' | 'TemplateLoad' | 'ChecklistToggle';
+    entity_id: UUID;
+    project_id?: UUID;
+    before?: unknown;
+    after?: unknown;
+    detail?: string;
+  }) => void | Promise<void>; // optional audit hook
 }
 
 export function createEmptyData(idGen: () => UUID, clock: () => ISODateTimeString): MasterPlanData {
@@ -55,6 +64,7 @@ export function createProject(data: MasterPlanData, input: CreateProjectInput): 
   };
   data.projects.push(project);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'Project', change_type: 'Create', entity_id: project.id, after: project });
   return project;
 }
 
@@ -71,6 +81,7 @@ export function updateProject(data: MasterPlanData, id: UUID, changes: Partial<O
   p.updated_at = data.now();
   // In a future audit log, record before & after diff.
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'Project', change_type: 'Update', entity_id: p.id, before, after: p });
   return p;
 }
 
@@ -78,9 +89,16 @@ export function deleteProject(data: MasterPlanData, id: UUID): boolean {
   const idx = data.projects.findIndex(p => p.id === id);
   if (idx === -1) return false;
   // Also remove associated plan items
+  const removedItems = data.planItems.filter(pi => pi.project_id === id);
   data.planItems = data.planItems.filter(pi => pi.project_id !== id);
   data.projects.splice(idx, 1);
   if (data.persist) void data.persist();
+  if (data.audit) {
+    void data.audit({ entity_type: 'Project', change_type: 'Delete', entity_id: id });
+    for (const pi of removedItems) {
+      void data.audit({ entity_type: 'PlanItem', change_type: 'Delete', entity_id: pi.id, project_id: id, before: pi, detail: 'Cascade delete due to project removal' });
+    }
+  }
   return true;
 }
 
@@ -118,12 +136,14 @@ export function createPlanItem(data: MasterPlanData, input: CreatePlanItemInput)
   };
   data.planItems.push(planItem);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'PlanItem', change_type: 'Create', entity_id: planItem.id, project_id: planItem.project_id, after: planItem });
   return planItem;
 }
 
 export function updatePlanItem(data: MasterPlanData, id: UUID, changes: Partial<Omit<PlanItem, 'id' | 'project_id' | 'created_at' | 'checklist'>> & { checklist?: { id?: UUID; label: string; checked?: boolean }[] }): PlanItem | null {
   const pi = data.planItems.find(pi => pi.id === id);
   if (!pi) return null;
+  const before: PlanItem = { ...pi, checklist: pi.checklist.map(c => ({ ...c })) };
   if (changes.title !== undefined) pi.title = changes.title.trim();
   if (changes.description !== undefined) pi.description = changes.description.trim();
   if (changes.category !== undefined) pi.category = changes.category as PlanItemCategory;
@@ -141,14 +161,17 @@ export function updatePlanItem(data: MasterPlanData, id: UUID, changes: Partial<
   }
   pi.updated_at = data.now();
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'PlanItem', change_type: 'Update', entity_id: pi.id, project_id: pi.project_id, before, after: pi });
   return pi;
 }
 
 export function deletePlanItem(data: MasterPlanData, id: UUID): boolean {
   const idx = data.planItems.findIndex(pi => pi.id === id);
   if (idx === -1) return false;
+  const before = data.planItems[idx];
   data.planItems.splice(idx, 1);
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'PlanItem', change_type: 'Delete', entity_id: id, project_id: before.project_id, before });
   return true;
 }
 
@@ -229,6 +252,11 @@ export function preloadMdcrTemplate(data: MasterPlanData, project_id: UUID, star
     );
   }
   if (data.persist) void data.persist();
+  if (data.audit) {
+    for (const createdItem of created) {
+      void data.audit({ entity_type: 'PlanItem', change_type: 'TemplateLoad', entity_id: createdItem.id, project_id: project_id, after: createdItem, detail: 'MDCR template preload' });
+    }
+  }
   return created;
 }
 
@@ -240,9 +268,11 @@ export function toggleChecklistItem(data: MasterPlanData, planItemId: UUID, chec
   if (!pi) return false;
   const item = pi.checklist.find(c => c.id === checklistItemId);
   if (!item) return false;
+  const beforeItem = { ...item };
   item.checked = checked;
   pi.updated_at = data.now();
   if (data.persist) void data.persist();
+  if (data.audit) void data.audit({ entity_type: 'PlanItem', change_type: 'ChecklistToggle', entity_id: pi.id, project_id: pi.project_id, before: beforeItem, after: item, detail: 'Checklist item toggled' });
   return true;
 }
 

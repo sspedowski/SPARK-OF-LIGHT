@@ -12,8 +12,7 @@ import {
   UUID,
   ISODateString,
   ISODateTimeString,
-} from "../../DOMAIN/sparkModels";
-} from "../../DOMAIN/sparkModels.ts";
+} from "../../DOMAIN/sparkModels.js";
 
 // In-memory stores (replace with adapters later)
 export interface MasterPlanData {

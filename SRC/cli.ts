@@ -7,12 +7,12 @@
 //   npm run cli -- outreach:create-category --name=Media --color=#ff0000 --tags=press,investigative
 //   npm run cli -- outreach:open-followups --date=2025-11-13
 
-import { loadMasterPlanData } from './MODULES/masterPlan/masterPlanPersistence.ts';
-import { loadOutreachData } from './MODULES/outreach/outreachPersistence.ts';
-import { createProject, preloadMdcrTemplate, filterPlanItems, createPlanItem, updatePlanItem, deletePlanItem, toggleChecklistItem } from './MODULES/masterPlan/masterPlanService.ts';
-import { createCategory } from './MODULES/outreach/outreachService.ts';
-import { buildDailySummary } from './CORE/dailySummary.ts';
-import { createAuditLogger } from './CORE/auditLogger.ts';
+import { loadMasterPlanData } from './MODULES/masterPlan/masterPlanPersistence.js';
+import { loadOutreachData } from './MODULES/outreach/outreachPersistence.js';
+import { createProject, preloadMdcrTemplate, filterPlanItems, createPlanItem, updatePlanItem, deletePlanItem, toggleChecklistItem } from './MODULES/masterPlan/masterPlanService.js';
+import { createCategory } from './MODULES/outreach/outreachService.js';
+import { buildDailySummary } from './CORE/dailySummary.js';
+import { createAuditLogger } from './CORE/auditLogger.js';
 
 function idGen() { return crypto.randomUUID(); }
 function clock() { return new Date().toISOString(); }
@@ -171,7 +171,7 @@ async function main() {
         const date = flags['date'];
         if (!date) { usage(); process.exit(1); }
         // Lazy import to keep CLI lean
-        const mod = await import('./MODULES/outreach/outreachService.ts');
+        const mod = await import('./MODULES/outreach/outreachService.js');
         const open = mod.openFollowUps(outreach, date);
         console.log(JSON.stringify(open, null, 2));
         break;

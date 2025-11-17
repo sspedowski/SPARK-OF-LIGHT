@@ -23,7 +23,7 @@ import {
   validateOutreachAction,
   validateFollowUpItem,
   validateOutcomeRecord,
-} from './outreachValidators';
+} from './outreachValidators.js';
 
 export interface OutreachData {
   categories: ContactCategory[];
@@ -141,7 +141,7 @@ export function updateContact(data: OutreachData, id: UUID, changes: Partial<Omi
   if (changes.website_url !== undefined) ct.website_url = changes.website_url.trim();
   if (changes.preferred_method !== undefined) ct.preferred_method = changes.preferred_method as PreferredContactMethod;
   if (changes.tags !== undefined && Array.isArray(changes.tags)) ct.tags = changes.tags.map(t => t.trim());
-  if (changes.notes !== undefined) (ct as any).notes = changes.notes; // future optional field
+  // future optional field 'notes' intentionally omitted until added to Contact model
   ct.updated_at = data.now();
   validateContact(ct);
   if (data.persist) void data.persist();

@@ -1,8 +1,8 @@
 // Simple test harness (no Jest) using Node assertions
 import assert from 'assert';
-import { createEmptyData, createProject, createPlanItem, projectProgress, toggleChecklistItem, filterPlanItems, updatePlanItem, deletePlanItem } from '../SRC/MODULES/masterPlan/masterPlanService.ts';
-import { createEmptyOutreachData, createCategory, createContact, recordOutreachAction, summaryMetrics } from '../SRC/MODULES/outreach/outreachService.ts';
-import { buildDailySummary } from '../SRC/CORE/dailySummary.ts';
+import { createEmptyData, createProject, createPlanItem, projectProgress, toggleChecklistItem, filterPlanItems, updatePlanItem, deletePlanItem } from '../SRC/MODULES/masterPlan/masterPlanService.js';
+import { createEmptyOutreachData, createCategory, createContact, recordOutreachAction, summaryMetrics } from '../SRC/MODULES/outreach/outreachService.js';
+import { buildDailySummary } from '../SRC/CORE/dailySummary.js';
 
 function uuid() { return crypto.randomUUID(); }
 function now() { return new Date().toISOString(); }
@@ -53,7 +53,7 @@ function testDailySummary() {
 }
 
 function run() {
-  const tests = [
+  const tests: Array<[string, () => void]> = [
     ['MasterPlan basics', testMasterPlanBasics],
     ['Outreach basics', testOutreachBasics],
     ['Daily summary', testDailySummary],

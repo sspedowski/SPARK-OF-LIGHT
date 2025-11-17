@@ -13,7 +13,7 @@ import {
   UUID,
   ISODateString,
   ISODateTimeString,
-} from "../../DOMAIN/sparkModels";
+} from "../../DOMAIN/sparkModels.js";
 
 // ─────────────────────────────────────────────────────────────
 // Helpers

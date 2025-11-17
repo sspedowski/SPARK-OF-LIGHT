@@ -1,8 +1,8 @@
 // Outreach Persistence — JSON snapshot (parallel to masterPlanPersistence)
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { ContactCategory, Contact, OutreachAction, FollowUpItem, OutcomeRecord, UUID, ISODateTimeString } from '../../DOMAIN/sparkModels';
-import { validateContactCategory, validateContact, validateOutreachAction, validateFollowUpItem, validateOutcomeRecord } from './outreachValidators';
+import { ContactCategory, Contact, OutreachAction, FollowUpItem, OutcomeRecord, UUID, ISODateTimeString } from '../../DOMAIN/sparkModels.js';
+import { validateContactCategory, validateContact, validateOutreachAction, validateFollowUpItem, validateOutcomeRecord } from './outreachValidators.js';
 import { OutreachData } from './outreachService';
 
 export interface OutreachSnapshot {

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p .",
-    "test": "ts-node --esm TESTS/runTests.ts",
-    "cli": "ts-node --esm SRC/cli.ts"
+    "test": "npm run build && node dist/TESTS/runTests.js",
+    "cli": "npm run build && node dist/SRC/cli.js",
+    "start": "npm run build && node dist/SRC/SPARK/sparkBoot.js"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
